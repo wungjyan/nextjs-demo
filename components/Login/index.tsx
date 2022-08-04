@@ -11,8 +11,6 @@ const Login = () => {
     verify: "",
   })
 
-  console.log(setForm)
-
   const handleCountDownEnd = () => {
     setIsShowVerifyCode(false)
   }
@@ -32,14 +30,30 @@ const Login = () => {
       })
   }
 
+  // 输入手机号
   const handleInputPhone = (e) => {
     const obj = { ...form, phone: e.target.value }
     setForm(obj)
   }
 
+  // 输入验证码
   const handleInputVerifyCode = (e) => {
     const obj = { ...form, verify: e.target.value }
     setForm(obj)
+  }
+
+  // 登录
+  const handleLogin = async () => {
+    if (!form.phone) {
+      message.warning("请输入手机号")
+      return
+    }
+    if (!form.verify) {
+      message.warning("请输入验证码")
+      return
+    }
+    const loginRes = await request.post("/api/user/login", { ...form })
+    console.log("登录结果==", loginRes)
   }
   return (
     <>
@@ -67,7 +81,12 @@ const Login = () => {
           )}
         </Col>
       </Row>
-      <Button type="primary" block style={{ marginTop: "20px" }}>
+      <Button
+        onClick={handleLogin}
+        type="primary"
+        block
+        style={{ marginTop: "20px" }}
+      >
         登录
       </Button>
       <Button style={{ padding: 0, marginTop: "10px" }} type="link">
