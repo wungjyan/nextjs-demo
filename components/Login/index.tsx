@@ -2,8 +2,13 @@ import { Button, Input, Row, Col, message } from "antd"
 import { useState } from "react"
 import CountDown from "components/CountDown"
 import request from "service/request"
+import { observer } from "mobx-react-lite"
+import { useStore } from "store/index"
 
-const Login = () => {
+const Login = (props) => {
+  const store = useStore()
+  console.log("store===", store)
+  const { onClose } = props
   const [isShowVerifyCode, setIsShowVerifyCode] = useState(false)
 
   const [form, setForm] = useState({
@@ -15,15 +20,15 @@ const Login = () => {
     setIsShowVerifyCode(false)
   }
   const handleGetVerifyCode = () => {
-    // setIsShowVerifyCode(true)
     if (!form.phone) {
       message.warning("请输入手机号")
       return
     }
+    setIsShowVerifyCode(true)
     request
       .post("/api/user/sendVerifyCode", { to: form.phone })
       .then((res: any) => {
-        console.log("请求结果==", res)
+        console.log("验证码请求结果==", res)
         if (res.code !== 0) {
           message.error(res.msg)
         }
@@ -52,8 +57,18 @@ const Login = () => {
       message.warning("请输入验证码")
       return
     }
-    const loginRes = await request.post("/api/user/login", { ...form })
+    const loginRes: any = await request.post("/api/user/login", {
+      ...form,
+      identity_type: "phone",
+    })
     console.log("登录结果==", loginRes)
+    if (loginRes?.code === 0) {
+      // 登录成功
+      store.user.setUserInfo(loginRes?.data)
+      onClose && onClose()
+    } else {
+      message.error("登录失败，未知错误")
+    }
   }
   return (
     <>
@@ -96,4 +111,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default observer(Login)
